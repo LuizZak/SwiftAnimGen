@@ -1,5 +1,12 @@
 import Foundation
 
+@testable import SwiftAnimGen
+
+func makeDummyAnimationsFile() -> AnimationsFile {
+    let data = makeDummyJsonData()
+    return try! JSONDecoder().decode(AnimationsFile.self, from: data)
+}
+
 func makeDummyJsonData() -> Data {
     return makeDummyJson().data(using: .utf8)!
 }
@@ -21,6 +28,38 @@ func makeDummyJson() -> String {
                 { "SM_RIFLE": "rifle" }
             ],
             "animation_names": [
+                { "ANIM_FIRE_C_PISTOL": "fire_c_pistol" },
+                { "ANIM_FIRE_D_PISTOL": "fire_d_pistol" },
+                { "ANIM_FIRE_H_PISTOL": "fire_h_pistol" },
+                { "ANIM_FIRE_V_PISTOL": "fire_v_pistol" },
+
+                { "ANIM_IDLE_C_PISTOL": "idle_c_pistol" },
+                { "ANIM_IDLE_D_PISTOL": "idle_d_pistol" },
+                { "ANIM_IDLE_H_PISTOL": "idle_h_pistol" },
+                { "ANIM_IDLE_V_PISTOL": "idle_v_pistol" },
+
+                { "ANIM_IDLING_C_PISTOL": "idling_c_pistol" },
+                { "ANIM_IDLING_H_PISTOL": "idling_h_pistol" },
+                { "ANIM_IDLING_V_PISTOL": "idling_v_pistol" },
+
+                { "ANIM_JUMP_PISTOL": "jump_pistol" },
+                { "ANIM_LAND_PISTOL": "land_pistol" },
+
+                { "ANIM_MELEE_PISTOL_C_1": "melee_pistol_c_1" },
+                { "ANIM_MELEE_PISTOL_H_1": "melee_pistol_h_1" },
+                { "ANIM_MELEE_PISTOL_H_2": "melee_pistol_h_2" },
+                { "ANIM_MELEE_PISTOL_H_3": "melee_pistol_h_3" },
+                { "ANIM_MELEE_PISTOL_H_4": "melee_pistol_h_4" },
+
+                { "ANIM_RUN_C_PISTOL": "run_c_pistol" },
+                { "ANIM_RUN_H_PISTOL": "run_h_pistol" },
+                { "ANIM_RUN_H_PISTOL_OLD": "run_h_pistol_old" },
+                { "ANIM_RUN_V_PISTOL": "run_v_pistol" },
+
+                { "ANIM_TRANS_H_V": "trans_h_v" },
+                { "ANIM_TRANS_HC_PISTOL": "trans_hc_pistol" },
+
+
                 { "ANIM_FIRE_C_RIFLE_MACHINEGUN": "fire_c_rifle_machinegun" },
                 { "ANIM_FIRE_D_RIFLE_MACHINEGUN": "fire_d_rifle_machinegun" },
                 { "ANIM_FIRE_H_RIFLE_MACHINEGUN": "fire_h_rifle_machinegun" },
