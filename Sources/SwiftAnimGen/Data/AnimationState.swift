@@ -1,11 +1,13 @@
 struct AnimationState: Codable {
     var name: String
+    var description: String?
     var animationName: String
     var transitions: [AnimationTransition]?
     var onEnd: [AnimationTransition]?
 
     enum CodingKeys: String, CodingKey {
         case name
+        case description
         case animationName = "animation_name"
         case transitions
         case onEnd = "on_end"

@@ -41,11 +41,21 @@ class GDScriptCodeGen {
 
 private extension GDScriptCodeGen {
     func emitState(_ state: AnimationState) {
+        var commentHeader: String = ""
+
+        if let description = state.description {
+            commentHeader += description + "\n"
+        }
+
         if let animName = animationNamesByState[state.name], let constantValue = animationConstants[animName] {
-            buffer.emitCommentBlock("""
+            commentHeader += """
             Handles:
             \(constantValue)
-            """)
+            """
+        }
+
+        if !commentHeader.isEmpty {
+            buffer.emitCommentBlock(commentHeader)
         }
 
         buffer.emit("class \(state.name) extends AnimationState")
