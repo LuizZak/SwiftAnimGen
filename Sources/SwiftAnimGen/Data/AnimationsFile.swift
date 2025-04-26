@@ -1,12 +1,20 @@
 struct AnimationsFile: Codable {
     var options: Options
     var constants: Constants
+    var entryPoints: [EntryPoint]?
     var states: [AnimationState]
 
     enum CodingKeys: String, CodingKey {
         case options
         case constants
+        case entryPoints = "entry_points"
         case states
+    }
+}
+
+extension AnimationsFile {
+    struct EntryPoint: Codable {
+        var name: String
     }
 }
 
