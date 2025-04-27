@@ -1,0 +1,146 @@
+@parserName "ConditionParser" ;
+@generationKind class ;
+@tokenTypeName "ConditionParserToken" ;
+@parserHeader """
+// HEADS UP! This is a generated file
+import SwiftPEG
+
+/// A parser for conditions in animation transitions.
+""" ;
+@tokenTypeHeader """
+// HEADS UP! This is a generated file
+import SwiftPEG
+""" ;
+
+@tokensFile "condition.tokens" ;
+@tokenCall expectKind ;
+@anyToken ANY ;
+
+
+start[ConditionGrammar.Condition]: condition ;
+
+
+condition[ConditionGrammar.Condition]:
+    | expression { .init(expression: expression) }
+    ;
+
+expression[ConditionGrammar.Expression]:
+    | expression '[' subs=expression ']'        { .subscript(expression, subs) }
+    | expression '.' IDENTIFIER                 { .attribute(expression, "\(identifier)") }
+    | expression '(' expressionList ')'         { .functionCall(expression, expressionList) }
+    | 'await' expression                        { .await(expression) }
+    | typeCast                                  { .typeCast(typeCast) }
+    ;
+
+expressionList[[ConditionGrammar.Expression]]:
+    | ','.expression+                           { expression }
+    ;
+
+typeCast[ConditionGrammar.TypeCastingExpression]:
+    | typeCast 'as' ternary                     { .typeCast(typeCast, ternary) }
+    | ternary                                   { .ternary(ternary) }
+    ;
+
+ternary[ConditionGrammar.TernaryExpression]:
+    | booleanOr 'if' expression 'else' ternary  { .ternary(trueExpr: booleanOr, condition: expression, falseExpr: ternary) }
+    | booleanOr                                 { .booleanOr(booleanOr) }
+    ;
+
+booleanOr[ConditionGrammar.BooleanOrExpression]:
+    | booleanOr _=BOOLEANOR booleanAnd          { .or(booleanOr, booleanAnd) }
+    | booleanAnd                                { .booleanAnd(booleanAnd) }
+    ;
+
+booleanAnd[ConditionGrammar.BooleanAndExpression]:
+    | booleanAnd _=BOOLEANAND booleanNot        { .and(booleanAnd, booleanNot) }
+    | booleanNot                                { .booleanNot(booleanNot) }
+    ;
+
+booleanNot[ConditionGrammar.BooleanNotExpression]:
+    | _=BOOLEANNOT booleanNot                   { .not(booleanNot) }
+    | inclusionCheck                            { .inclusionCheck(inclusionCheck) }
+    ;
+
+inclusionCheck[ConditionGrammar.InclusionCheckExpression]:
+    | inclusionCheck 'in' comparison            { .in(inclusionCheck, comparison) }
+    | inclusionCheck 'not' 'in' comparison      { .notIn(inclusionCheck, comparison) }
+    | comparison                                { .comparison(comparison) }
+    ;
+
+comparison[ConditionGrammar.ComparisonExpression]:
+    | comparison '==' bitwiseOr                 { .equals(comparison, bitwiseOr) }
+    | comparison '!=' bitwiseOr                 { .notEquals(comparison, bitwiseOr) }
+    | comparison '<' bitwiseOr                  { .lessThan(comparison, bitwiseOr) }
+    | comparison '>' bitwiseOr                  { .greaterThan(comparison, bitwiseOr) }
+    | comparison '<=' bitwiseOr                 { .lessThanOrEqual(comparison, bitwiseOr) }
+    | comparison '>=' bitwiseOr                 { .greaterThanOrEqual(comparison, bitwiseOr) }
+    | bitwiseOr                                 { .bitwiseOr(bitwiseOr) }
+    ;
+
+bitwiseOr[ConditionGrammar.BitwiseOrExpression]:
+    | bitwiseOr '|' bitwiseXor                  { .or(bitwiseOr, bitwiseXor) }
+    | bitwiseXor                                { .bitwiseXor(bitwiseXor) }
+    ;
+
+bitwiseXor[ConditionGrammar.BitwiseXorExpression]:
+    | bitwiseXor '^' bitwiseAnd                 { .xor(bitwiseXor, bitwiseAnd) }
+    | bitwiseAnd                                { .bitwiseAnd(bitwiseAnd) }
+    ;
+
+bitwiseAnd[ConditionGrammar.BitwiseAndExpression]:
+    | bitwiseAnd '&' bitShift                   { .and(bitwiseAnd, bitShift) }
+    | bitShift                                  { .bitShift(bitShift) }
+    ;
+
+bitShift[ConditionGrammar.BitShiftExpression]:
+    | bitShift '<<' addition                    { .leftShift(bitShift, addition) }
+    | bitShift '>>' addition                    { .rightShift(bitShift, addition) }
+    | addition                                  { .addition(addition) }
+    ;
+
+addition[ConditionGrammar.AdditionExpression]:
+    | addition '+' multiplication               { .add(addition, multiplication) }
+    | addition '-' multiplication               { .subtract(addition, multiplication) }
+    | multiplication                            { .multiplication(multiplication) }
+    ;
+
+multiplication[ConditionGrammar.MultiplicationExpression]:
+    | multiplication '*' identity               { .multiply(multiplication, identity) }
+    | multiplication '/' identity               { .divide(multiplication, identity) }
+    | multiplication '%' identity               { .modulus(multiplication, identity) }
+    | identity                                  { .identity(identity) }
+    ;
+
+identity[ConditionGrammar.IdentityExpression]:
+    | '+' identity                              { .identity(identity) }
+    | '-' identity                              { .negation(identity) }
+    | bitwiseNot                                { .bitwiseNot(bitwiseNot) }
+    ;
+
+bitwiseNot[ConditionGrammar.BitwiseNotExpression]:
+    | '~' bitwiseNot                            { .bitwiseNot(bitwiseNot) }
+    | power                                     { .powerExpression(power) }
+    ;
+
+power[ConditionGrammar.PowerExpression]:
+    | power '**' typeCheck                      { .power(power, typeCheck) }
+    | typeCheck                                 { .typeCheck(typeCheck) }
+    ;
+
+typeCheck[ConditionGrammar.TypeCheckExpression]:
+    | lhs=typeCheck 'is' rhs=atom               { .isType(lhs, rhs) }
+    | lhs=typeCheck 'is' 'not' rhs=atom         { .isNotType(lhs, rhs) }
+    | atom                                      { .atom(atom) }
+    ;
+
+atom[ConditionGrammar.AtomExpression]:
+    | '(' expression ')'                        { .parens(expression) }
+    | IDENTIFIER                                { .identifier("\(identifier)") }
+    | literal                                   { .literal(literal) }
+    ;
+
+literal[ConditionGrammar.Literal]:
+    | STRING { .string("\(string)") }
+    | INTEGER { .integer(Int("\(integer)") ?? 0) }
+    | FLOAT { .float(Double("\(float)") ?? 0.0) }
+    ;

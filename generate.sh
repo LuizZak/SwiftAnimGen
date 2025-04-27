@@ -1,0 +1,2 @@
+swift package --allow-writing-to-package-directory generate-parser token-type --grammar-file ./Sources/SwiftAnimGen/ConditionGrammar/condition.gram --output Sources/SwiftAnimGen/ConditionParser/ConditionParserToken.swift --access-level=public --inlinable
+swift package --allow-writing-to-package-directory generate-parser generate --grammar-file ./Sources/SwiftAnimGen/ConditionGrammar/condition.gram --output Sources/SwiftAnimGen/ConditionParser/ConditionParser.swift

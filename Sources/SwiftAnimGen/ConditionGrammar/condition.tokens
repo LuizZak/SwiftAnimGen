@@ -1,0 +1,141 @@
+@channel whitespace ~> skip ;
+
+$WHITESPACE[".whitespace"]:
+    | (" " | "\t" | "\n" | "\r")+
+    ;
+
+@channel ;
+
+$IDENTIFIER[".identifier"]:
+    | identifierHead identifierCharacter*
+    ;
+%identifierHead:
+    | ('a'...'z' | 'A'...'Z' | '_')
+    ;
+%identifierCharacter:
+    | ('a'...'z' | 'A'...'Z' | '0'...'9' | '_')
+    ;
+
+%DIGIT:
+    | "0"..."9"
+    ;
+
+%DIGIT_WITH_SEPARATOR:
+    | DIGIT "_"?
+    ;
+
+%DIGITS:
+    | DIGIT_WITH_SEPARATOR+
+    ;
+
+%HEXDIGIT:
+    | "0"..."9" | "A"..."F" | "a"..."f"
+    ;
+
+%HEXDIGIT_WITH_SEPARATOR:
+    | HEXDIGIT "_"?
+    ;
+
+%HEXDIGITS:
+    | HEXDIGIT_WITH_SEPARATOR+
+    ;
+
+%BINARYDIGIT:
+    | '0' | '1'
+    ;
+
+%BINARYDIGIT_WITH_SEPARATOR:
+    | BINARYDIGIT "_"?
+    ;
+
+%BINARYDIGITS:
+    | BINARYDIGIT_WITH_SEPARATOR+
+    ;
+
+$INTEGER[".integer"]:
+    | DIGITS
+    | '0x' HEXDIGITS
+    | '0b' BINARYDIGITS
+    ;
+
+%FLOAT_EXPONENT:
+    | 'e' ('+' | '-')? DIGITS
+    ;
+
+$FLOAT[".float"]:
+    | DIGITS '.' DIGITS FLOAT_EXPONENT?
+    ;
+
+$AWAIT[".await"]:
+    | "await"
+    ;
+
+$AS[".as"]:
+    | "as"
+    ;
+
+$IS[".is"]:
+    | "is"
+    ;
+
+$IN[".in"]:
+    | "in"
+    ;
+
+$NOT[".not"]: "not" ;
+
+$BOOLEANNOT[".booleanNot"]:
+    | "not"
+    | "!"
+    ;
+
+$BOOLEANAND[".booleanAnd"]:
+    | "and"
+    | "&&"
+    ;
+
+$BOOLEANOR[".booleanOr"]:
+    | "or"
+    | "||"
+    ;
+
+$STRING[".string"]:
+    | tripleQuote ( '\\"""' | unicodeEscape | backslashEscape | !tripleQuote . )* tripleQuote
+    | doubleQuote ( '\\"' | unicodeEscape | backslashEscape | !doubleQuote !'\n' . )* doubleQuote
+    | singleQuote ( "\\'" | unicodeEscape | backslashEscape | !singleQuote !'\n' . )* singleQuote
+    ;
+
+%tripleQuote: '"""' ;
+%doubleQuote: '"' ;
+%singleQuote: "'" ;
+%backslashEscape: '\\\\' | '\\' ;
+%unicodeEscape: '\\u' HEXDIGIT+ | '\\U' HEXDIGIT+ ;
+
+$LEFTPAREN[".leftParen"]: "(" ;
+$RIGHTPAREN[".rightParen"]: ")" ;
+$LEFTBRACE[".leftBrace"]: "{" ;
+$RIGHTBRACE[".rightBrace"]: "}" ;
+$LEFTSQUARE[".leftSquare"]: "[" ;
+$RIGHTSQUARE[".rightSquare"]: "]" ;
+$LEFTANGLE[".leftAngle"]: "<" ;
+$RIGHTANGLE[".rightAngle"]: ">" ;
+$LEFTSHIFT[".leftShift"]: '<<' ;
+$RIGHTSHIFT[".rightShift"]: '>>' ;
+$STAR[".star"]: "*" ;
+$MODULUS[".modulus"]: "%" ;
+$DIVIDE[".divide"]: "/" ;
+$DOUBLESTAR[".doubleStar"]: "**" ;
+$PLUS[".plus"]: "+" ;
+$MINUS[".minus"]: "-" ;
+$COMMA[".comma"]: "," ;
+$PERIOD[".period"]: "." ;
+$TILDE[".tilde"]: "~" ;
+$BITWISEAND[".bitwiseAnd"]: "&" ;
+$BITWISEOR[".bitwiseOr"]: "|" ;
+$BITWISEXOR[".bitwiseXor"]: "^" ;
+$EQUALS[".equals"]: "==" ;
+$NOTEQUALS[".notEquals"]: "!=" ;
+$LESSOREQUALS[".lessOrEquals"]: "<=" ;
+$GREATEROREQUALS[".greaterOrEquals"]: ">=" ;
+$IF[".if"]: "if" ;
+$ELSE[".else"]: "else" ;

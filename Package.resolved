@@ -1,13 +1,76 @@
 {
-  "originHash" : "451f15ac8396ccf17440da712e0e2654a217c3c8a4b7cc776d6e8b50efe9c65c",
+  "originHash" : "5069d63862a8cf5a6eb39e6b8023fa27afe39ecba3c753bb4400b6ff814978c3",
   "pins" : [
+    {
+      "identity" : "console",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/Console.git",
+      "state" : {
+        "revision" : "9f4946929b7aac54ecc642c3ef15ec4fc05618a0",
+        "version" : "0.14.1"
+      }
+    },
     {
       "identity" : "minidigraph",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/LuizZak/MiniDigraph.git",
       "state" : {
-        "revision" : "52b1e99893467e7546429243a69ce0f50eb5a225",
-        "version" : "0.8.1"
+        "revision" : "188262a9aaafa42d4d51b369f804edbd57901130",
+        "version" : "0.8.0"
+      }
+    },
+    {
+      "identity" : "minigraphviz",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/MiniGraphviz.git",
+      "state" : {
+        "revision" : "aa15c50cf8027dae6dde860a40987c238070d849",
+        "version" : "0.1.0"
+      }
+    },
+    {
+      "identity" : "minilexer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/MiniLexer.git",
+      "state" : {
+        "revision" : "71cc272f4613d1e45e1eacab33fa2f77c6311007",
+        "version" : "0.10.0"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "0fbc8848e389af3bb55c182bc19ca9d5dc2f255b",
+        "version" : "1.4.0"
+      }
+    },
+    {
+      "identity" : "swift-peg",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/swift-peg.git",
+      "state" : {
+        "revision" : "948a4e2f816e46a3c8c85ccc1effa343335f0dae",
+        "version" : "0.7.0"
+      }
+    },
+    {
+      "identity" : "swift-syntax",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-syntax.git",
+      "state" : {
+        "revision" : "cb53fa1bd3219b0b23ded7dfdd3b2baff266fd25",
+        "version" : "600.0.0"
+      }
+    },
+    {
+      "identity" : "swiftast",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/LuizZak/SwiftAST.git",
+      "state" : {
+        "revision" : "75eb69c009d213b58a34a43bc164054c8d52c73a",
+        "version" : "0.14.0"
       }
     }
   ],
