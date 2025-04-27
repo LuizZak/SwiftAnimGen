@@ -63,58 +63,13 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
     /// ```
     /// expression[ConditionGrammar.Expression]:
-    ///     | expression '[' subs=expression ']' { .subscript(expression, subs) }
-    ///     | expression '.' IDENTIFIER { .attribute(expression, "\(identifier)") }
-    ///     | expression '(' expressionList ')' { .functionCall(expression, expressionList) }
-    ///     | 'await' expression { .await(expression) }
     ///     | typeCast { .typeCast(typeCast) }
     ///     ;
     /// ```
-    @memoizedLeftRecursive("expression")
+    @memoized("expression")
     @inlinable
     public func __expression() throws -> ConditionGrammar.Expression? {
         let _mark: Mark = self.mark()
-
-        if
-            let expression = try self.expression(),
-            let _ = try self.expect(kind: .leftSquare),
-            let subs = try self.expression(),
-            let _ = try self.expect(kind: .rightSquare)
-        {
-            return .subscript(expression, subs)
-        }
-
-        self.restore(_mark)
-
-        if
-            let expression = try self.expression(),
-            let _ = try self.expect(kind: .period),
-            let identifier = try self.expect(kind: .identifier)
-        {
-            return .attribute(expression, "\(identifier)")
-        }
-
-        self.restore(_mark)
-
-        if
-            let expression = try self.expression(),
-            let _ = try self.expect(kind: .leftParen),
-            let expressionList = try self.expressionList(),
-            let _ = try self.expect(kind: .rightParen)
-        {
-            return .functionCall(expression, expressionList)
-        }
-
-        self.restore(_mark)
-
-        if
-            let _ = try self.expect(kind: .await),
-            let expression = try self.expression()
-        {
-            return .await(expression)
-        }
-
-        self.restore(_mark)
 
         if let typeCast = try self.typeCast() {
             return .typeCast(typeCast)
@@ -694,7 +649,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
     /// ```
     /// bitwiseNot[ConditionGrammar.BitwiseNotExpression]:
     ///     | '~' bitwiseNot { .bitwiseNot(bitwiseNot) }
-    ///     | power { .powerExpression(power) }
+    ///     | power { .power(power) }
     ///     ;
     /// ```
     @memoized("bitwiseNot")
@@ -712,7 +667,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
         self.restore(_mark)
 
         if let power = try self.power() {
-            return .powerExpression(power)
+            return .power(power)
         }
 
         self.restore(_mark)
@@ -752,9 +707,9 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
     /// ```
     /// typeCheck[ConditionGrammar.TypeCheckExpression]:
-    ///     | lhs=typeCheck 'is' rhs=atom { .isType(lhs, rhs) }
-    ///     | lhs=typeCheck 'is' 'not' rhs=atom { .isNotType(lhs, rhs) }
-    ///     | atom { .atom(atom) }
+    ///     | lhs=typeCheck 'is' rhs=await { .isType(lhs, rhs) }
+    ///     | lhs=typeCheck 'is' 'not' rhs=await { .isNotType(lhs, rhs) }
+    ///     | await_=await { .await(await_) }
     ///     ;
     /// ```
     @memoizedLeftRecursive("typeCheck")
@@ -765,7 +720,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
         if
             let lhs = try self.typeCheck(),
             let _ = try self.expect(kind: .is),
-            let rhs = try self.atom()
+            let rhs = try self.await()
         {
             return .isType(lhs, rhs)
         }
@@ -776,9 +731,122 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
             let lhs = try self.typeCheck(),
             let _ = try self.expect(kind: .is),
             let _ = try self.expect(kind: .not),
-            let rhs = try self.atom()
+            let rhs = try self.await()
         {
             return .isNotType(lhs, rhs)
+        }
+
+        self.restore(_mark)
+
+        if let await_ = try self.await() {
+            return .await(await_)
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// await[ConditionGrammar.AwaitExpression]:
+    ///     | 'await' await_=await { .await(await_) }
+    ///     | postfix { .postfix(postfix) }
+    ///     ;
+    /// ```
+    @memoized("await")
+    @inlinable
+    public func __await() throws -> ConditionGrammar.AwaitExpression? {
+        let _mark: Mark = self.mark()
+
+        if
+            let _ = try self.expect(kind: .await),
+            let await_ = try self.await()
+        {
+            return .await(await_)
+        }
+
+        self.restore(_mark)
+
+        if let postfix = try self.postfix() {
+            return .postfix(postfix)
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// postfix[ConditionGrammar.PostfixExpression]:
+    ///     | postfix '.' IDENTIFIER { .attribute(postfix, "\(identifier)") }
+    ///     | postfix '(' expressionList? ')' { .functionCall(postfix, expressionList ?? []) }
+    ///     | postfix '[' expression ']' { .subscription(postfix, expression) }
+    ///     | grouping { .grouping(grouping) }
+    ///     ;
+    /// ```
+    @memoizedLeftRecursive("postfix")
+    @inlinable
+    public func __postfix() throws -> ConditionGrammar.PostfixExpression? {
+        let _mark: Mark = self.mark()
+
+        if
+            let postfix = try self.postfix(),
+            let _ = try self.expect(kind: .period),
+            let identifier = try self.expect(kind: .identifier)
+        {
+            return .attribute(postfix, "\(identifier)")
+        }
+
+        self.restore(_mark)
+
+        if
+            let postfix = try self.postfix(),
+            let _ = try self.expect(kind: .leftParen),
+            case let expressionList = try self.expressionList(),
+            let _ = try self.expect(kind: .rightParen)
+        {
+            return .functionCall(postfix, expressionList ?? [])
+        }
+
+        self.restore(_mark)
+
+        if
+            let postfix = try self.postfix(),
+            let _ = try self.expect(kind: .leftSquare),
+            let expression = try self.expression(),
+            let _ = try self.expect(kind: .rightSquare)
+        {
+            return .subscription(postfix, expression)
+        }
+
+        self.restore(_mark)
+
+        if let grouping = try self.grouping() {
+            return .grouping(grouping)
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// grouping[ConditionGrammar.GroupingExpression]:
+    ///     | '(' expression ')' { .grouping(expression) }
+    ///     | atom { .atom(atom) }
+    ///     ;
+    /// ```
+    @memoized("grouping")
+    @inlinable
+    public func __grouping() throws -> ConditionGrammar.GroupingExpression? {
+        let _mark: Mark = self.mark()
+
+        if
+            let _ = try self.expect(kind: .leftParen),
+            let expression = try self.expression(),
+            let _ = try self.expect(kind: .rightParen)
+        {
+            return .grouping(expression)
         }
 
         self.restore(_mark)

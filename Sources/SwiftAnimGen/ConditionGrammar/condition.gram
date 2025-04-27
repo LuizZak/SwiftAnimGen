@@ -25,10 +25,6 @@ condition[ConditionGrammar.Condition]:
     ;
 
 expression[ConditionGrammar.Expression]:
-    | expression '[' subs=expression ']'        { .subscript(expression, subs) }
-    | expression '.' IDENTIFIER                 { .attribute(expression, "\(identifier)") }
-    | expression '(' expressionList ')'         { .functionCall(expression, expressionList) }
-    | 'await' expression                        { .await(expression) }
     | typeCast                                  { .typeCast(typeCast) }
     ;
 
@@ -119,7 +115,7 @@ identity[ConditionGrammar.IdentityExpression]:
 
 bitwiseNot[ConditionGrammar.BitwiseNotExpression]:
     | '~' bitwiseNot                            { .bitwiseNot(bitwiseNot) }
-    | power                                     { .powerExpression(power) }
+    | power                                     { .power(power) }
     ;
 
 power[ConditionGrammar.PowerExpression]:
@@ -128,8 +124,25 @@ power[ConditionGrammar.PowerExpression]:
     ;
 
 typeCheck[ConditionGrammar.TypeCheckExpression]:
-    | lhs=typeCheck 'is' rhs=atom               { .isType(lhs, rhs) }
-    | lhs=typeCheck 'is' 'not' rhs=atom         { .isNotType(lhs, rhs) }
+    | lhs=typeCheck 'is' rhs=await              { .isType(lhs, rhs) }
+    | lhs=typeCheck 'is' 'not' rhs=await        { .isNotType(lhs, rhs) }
+    | await_=await                              { .await(await_) }
+    ;
+
+await[ConditionGrammar.AwaitExpression]:
+    | 'await' await_=await                      { .await(await_) }
+    | postfix                                   { .postfix(postfix) }
+    ;
+
+postfix[ConditionGrammar.PostfixExpression]:
+    | postfix '.' IDENTIFIER                    { .attribute(postfix, "\(identifier)") }
+    | postfix '(' expressionList? ')'           { .functionCall(postfix, expressionList ?? []) }
+    | postfix '[' expression ']'                { .subscription(postfix, expression) }
+    | grouping                                  { .grouping(grouping) }
+    ;
+
+grouping[ConditionGrammar.GroupingExpression]:
+    | '(' expression ')'                        { .grouping(expression) }
     | atom                                      { .atom(atom) }
     ;
 

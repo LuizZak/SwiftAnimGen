@@ -1,3 +1,5 @@
+import SwiftPEG
+
 struct AnimationState: Codable {
     var name: String
     var description: String?
@@ -20,6 +22,7 @@ struct AnimationTransition: Codable {
     var options: Options?
 
     enum Conditions: Codable, Equatable {
+        case expression(ConditionGrammar.Condition)
         case constants([ConstantEntry])
 
         init(from decoder: any Decoder) throws {
@@ -35,12 +38,32 @@ struct AnimationTransition: Codable {
 
                 self = .constants(constants)
             } catch {
-                throw error
+                do {
+                    let singleValueContainer = try decoder.singleValueContainer()
+
+                    let conditionString = try singleValueContainer.decode(String.self)
+
+                    let tokenizer = ConditionParserRawTokenizer(source: conditionString)
+                    let parser = ConditionParser(raw: tokenizer)
+
+                    guard let result = try parser.start(), try parser.isEOF() else {
+                        throw parser.makeSyntaxError()
+                    }
+
+                    self = .expression(result)
+                } catch {
+                    throw error
+                }
             }
         }
 
         func encode(to encoder: any Encoder) throws {
             switch self {
+            case .expression(let expr):
+                var container = encoder.singleValueContainer()
+
+                try container.encode(expr.description)
+
             case .constants(let constants):
                 var container = encoder.unkeyedContainer()
 
