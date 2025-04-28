@@ -96,6 +96,14 @@
         
         "ShortcutMenuBar.userButton01Command": "workbench.action.tasks.runTask|Build (debug)",
         "ShortcutMenuBar.userButton02Command": "workbench.action.tasks.runTask|Test",
+        "json.schemas": [
+            {
+                "fileMatch": [
+                    "example.json"
+                ],
+                "url": "./animations.schema.json"
+            }
+        ]
     },
     "extensions": {
         "recommendations": [
