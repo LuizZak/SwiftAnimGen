@@ -1,0 +1,62 @@
+{
+    "options": {
+        "animation_name_kind": "constant"
+    },
+    "constants": {
+        "state_machine": [
+            { "SM_CROUCHING": "crouching" },
+            { "SM_WALKING": "walking" },
+            { "SM_ON_AIR": "on_air" }
+        ],
+        "animation_names": [
+            { "ANIM_IDLE": "idle" },
+            { "ANIM_CROUCH": "crouch" },
+            { "ANIM_RUN": "run" },
+            { "ANIM_JUMP": "jump" }
+        ]
+    },
+    "entry_points": [
+        { "name": "IdleState" },
+        { "name": "CrouchState" },
+        { "name": "RunState" },
+        { "name": "JumpState" }
+    ],
+    "states": [
+        {
+            "name": "IdleState",
+            "description": "Idle, not running",
+            "animation_name": "ANIM_IDLE",
+            "transitions": [
+                { "state": "RunState", "conditions": "SM_WALKING" },
+                { "state": "CrouchState", "conditions": "SM_CROUCHING" }
+            ]
+        },
+        {
+            "name": "CrouchState",
+            "description": "Crouching, not running",
+            "animation_name": "ANIM_CROUCH",
+            "transitions": [
+                { "state": "IdleState", "conditions": "!SM_CROUCHING" }
+            ]
+        },
+        {
+            "name": "RunState",
+            "description": "Run state",
+            "animation_name": "ANIM_RUN",
+            "transitions": [
+                { "state": "IdleState", "conditions": "!SM_WALKING" }
+            ]
+        },
+        {
+            "name": "JumpState",
+            "description": "On air",
+            "animation_name": "ANIM_JUMP",
+            "transitions": [
+                { "state": "IdleState", "conditions": "!SM_ON_AIR" }
+            ],
+            "on_end": [
+                { "state": "IdleState" }
+            ]
+        }
+    ]
+}
