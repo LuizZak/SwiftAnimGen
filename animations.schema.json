@@ -1,0 +1,149 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/Animations",
+    "definitions": {
+        "Animations": {
+            "type": "object",
+            "description": "A definition file for animations.json file.",
+            "additionalProperties": false,
+            "properties": {
+                "options": {
+                    "$ref": "#/definitions/GlobalOptions"
+                },
+                "constants": {
+                    "$ref": "#/definitions/Constants"
+                },
+                "entry_points": {
+                    "$ref": "#/definitions/EntryPoints"
+                },
+                "states": {
+                    "$ref": "#/definitions/States"
+                }
+            },
+            "required": [
+                "states"
+            ]
+        },
+        "GlobalOptions": {
+            "type": "object",
+            "description": "Global options for generated scripts.",
+            "additionalProperties": false,
+            "properties": {
+                "animation_name_kind": {
+                    "enum": [
+                        "constant"
+                    ]
+                }
+            }
+        },
+        "Constants": {
+            "type": "object",
+            "description": "Describes a set of constants for animations.json file.",
+            "additionalProperties": false,
+            "properties": {
+                "state_machine": {
+                    "$ref": "#/definitions/ConstantsContainer",
+                    "description": "State machine constants that will be unfolded as 'state_machine.parameters[CONSTANT_NAME]' automatically in generated code."
+                },
+                "animation_names": {
+                    "$ref": "#/definitions/ConstantsContainer",
+                    "description": "Constants pertaining to the animation names."
+                }
+            }
+        },
+        "ConstantsContainer": {
+            "type": "array",
+            "description": "A dictionary of constants that will be visible by the generated script.",
+            "items": {
+                "$ref": "#/definitions/Constant"
+            }
+        },
+        "Constant": {
+            "type": "object",
+            "description": "A constant that will be visible by the generated script."
+        },
+        "EntryPoints": {
+            "type": "array",
+            "description": "A list of entry point definitions.",
+            "items": {
+                "$ref": "#/definitions/EntryPointDefinition"
+            }
+        },
+        "EntryPointDefinition": {
+            "type": "object",
+            "description": "A reference to an animation state that will be made an entry point as a function definition."
+        },
+        "States": {
+            "type": "array",
+            "description": "An array of state definitions.",
+            "items": {
+                "$ref": "#/definitions/State"
+            }
+        },
+        "State": {
+            "type": "object",
+            "description": "A state definition.",
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The name for this state."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "An optional string description that will be generated as a comment for this state's class."
+                },
+                "animation_name": {
+                    "type": "string",
+                    "description": "The name of the animation that this state plays. Must be an animation name defined in constants.animation_names."
+                },
+                "transitions": {
+                    "type": "array",
+                    "description": "An array of state transitions that will be applied instantly according to their conditions.",
+                    "items": {
+                        "$ref": "#/definitions/Transition"
+                    }
+                },
+                "on_end": {
+                    "type": "array",
+                    "description": "An array of state transitions that will be applied when the animation finishes playback according to their conditions.",
+                    "items": {
+                        "$ref": "#/definitions/Transition"
+                    }
+                }
+            },
+            "required": [
+                "name",
+                "animation_name"
+            ]
+        },
+        "Transition": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "state": {
+                    "type": "string",
+                    "description": "The name of the state to transition to."
+                },
+                "conditions": {
+                    "type": "string",
+                    "description": "A GDScript conditional expression that will be checked before the transition is applied. Constants that match ones in 'constants.state_machine' within are automatically expanded to 'state_machine.parameters[CONSTANT_NAME]'."
+                },
+                "options": {
+                    "type": "object",
+                    "description": "Optional options to apply to the transition.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "initializer": {
+                            "type": "string",
+                            "description": "A replacement to the usual '.new()' appended to the state transition. Can be used to apply custom parameters to the state's initializer, such as '.new(animations.current_animation_position)' for playing the next state at the same position as this state's current position."
+                        }
+                    }
+                }
+            },
+            "required": [
+                "state"
+            ]
+        }
+    }
+}
