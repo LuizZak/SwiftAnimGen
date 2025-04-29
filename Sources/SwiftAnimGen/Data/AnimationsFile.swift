@@ -1,10 +1,14 @@
 struct AnimationsFile: Codable {
+    var className: String
+    var superclass: String?
     var options: Options
     var constants: Constants
     var entryPoints: [EntryPoint]?
     var states: [AnimationState]
 
     enum CodingKeys: String, CodingKey {
+        case className = "class_name"
+        case superclass
         case options
         case constants
         case entryPoints = "entry_points"
@@ -34,8 +38,20 @@ extension AnimationsFile {
 
 extension AnimationsFile {
     struct Constants: Codable {
-        var stateMachine: [Constant]
+        var stateMachine: [StateMachineConstant]
         var animationNames: [Constant]
+
+        struct StateMachineConstant: Codable {
+            var constant: Constant
+            var type: String
+            var setterName: String?
+
+            enum CodingKeys: String, CodingKey {
+                case constant
+                case type
+                case setterName = "setter_name"
+            }
+        }
 
         struct Constant: Codable {
             var key: String

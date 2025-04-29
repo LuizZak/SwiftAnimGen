@@ -2,6 +2,17 @@ import Foundation
 
 @testable import SwiftAnimGen
 
+func parseCondition(_ condition: String) throws -> ConditionGrammar.Condition {
+    let tokenizer = ConditionParserRawTokenizer(source: condition)
+    let parser = ConditionParser(raw: tokenizer)
+
+    guard let condition = try parser.start(), try parser.isEOF() else {
+        throw parser.makeSyntaxError()
+    }
+
+    return condition
+}
+
 func makeDummyAnimationsFile() -> AnimationsFile {
     let data = makeDummyJsonData()
     return try! JSONDecoder().decode(AnimationsFile.self, from: data)
@@ -14,496 +25,66 @@ func makeDummyJsonData() -> Data {
 func makeDummyJson() -> String {
     return #"""
     {
+        "class_name": "ExampleAnimationStateMachine",
         "options": {
             "animation_name_kind": "constant"
         },
         "constants": {
             "state_machine": [
-                { "SM_AIR": "air" },
-                { "SM_CROUCHING": "crouching" },
-                { "SM_H_AIMING": "h_aiming" },
-                { "SM_D_AIMING": "d_aiming" },
-                { "SM_V_AIMING": "v_aiming" },
-                { "SM_WALKING": "walking" },
-                { "SM_RIFLE": "rifle" }
+                { "constant": { "SM_CROUCHING": "crouching" }, "type": "bool" },
+                { "constant": { "SM_WALKING": "walking" }, "type": "bool" },
+                { "constant": { "SM_ON_AIR": "on_air" }, "type": "bool" }
             ],
             "animation_names": [
-                { "ANIM_FIRE_C_PISTOL": "fire_c_pistol" },
-                { "ANIM_FIRE_D_PISTOL": "fire_d_pistol" },
-                { "ANIM_FIRE_H_PISTOL": "fire_h_pistol" },
-                { "ANIM_FIRE_V_PISTOL": "fire_v_pistol" },
-
-                { "ANIM_IDLE_C_PISTOL": "idle_c_pistol" },
-                { "ANIM_IDLE_D_PISTOL": "idle_d_pistol" },
-                { "ANIM_IDLE_H_PISTOL": "idle_h_pistol" },
-                { "ANIM_IDLE_V_PISTOL": "idle_v_pistol" },
-
-                { "ANIM_IDLING_C_PISTOL": "idling_c_pistol" },
-                { "ANIM_IDLING_H_PISTOL": "idling_h_pistol" },
-                { "ANIM_IDLING_V_PISTOL": "idling_v_pistol" },
-
-                { "ANIM_JUMP_PISTOL": "jump_pistol" },
-                { "ANIM_LAND_PISTOL": "land_pistol" },
-
-                { "ANIM_MELEE_PISTOL_C_1": "melee_pistol_c_1" },
-                { "ANIM_MELEE_PISTOL_H_1": "melee_pistol_h_1" },
-                { "ANIM_MELEE_PISTOL_H_2": "melee_pistol_h_2" },
-                { "ANIM_MELEE_PISTOL_H_3": "melee_pistol_h_3" },
-                { "ANIM_MELEE_PISTOL_H_4": "melee_pistol_h_4" },
-
-                { "ANIM_RUN_C_PISTOL": "run_c_pistol" },
-                { "ANIM_RUN_H_PISTOL": "run_h_pistol" },
-                { "ANIM_RUN_H_PISTOL_OLD": "run_h_pistol_old" },
-                { "ANIM_RUN_V_PISTOL": "run_v_pistol" },
-
-                { "ANIM_TRANS_H_V": "trans_h_v" },
-                { "ANIM_TRANS_HC_PISTOL": "trans_hc_pistol" },
-
-
-
-                { "ANIM_FIRE_C_RIFLE_MACHINEGUN": "fire_c_rifle_machinegun" },
-                { "ANIM_FIRE_D_RIFLE_MACHINEGUN": "fire_d_rifle_machinegun" },
-                { "ANIM_FIRE_H_RIFLE_MACHINEGUN": "fire_h_rifle_machinegun" },
-                { "ANIM_FIRE_V_RIFLE_MACHINEGUN": "fire_v_rifle_machinegun" },
-
-                { "ANIM_IDLE_C_RIFLE": "idle_c_rifle" },
-                { "ANIM_IDLE_D_RIFLE": "idle_d_rifle" },
-                { "ANIM_IDLE_H_RIFLE": "idle_h_rifle" },
-                { "ANIM_IDLE_V_RIFLE": "idle_v_rifle" },
-
-                { "ANIM_JUMP_RIFLE": "jump_rifle" },
-                { "ANIM_LAND_RIFLE": "land_rifle" },
-
-                { "ANIM_MELEE_RIFLE_H": "melee_rifle_h" },
-                { "ANIM_MELEE_RIFLE_C": "melee_rifle_c" },
-
-                { "ANIM_RUN_C_RIFLE": "run_c_rifle" },
-                { "ANIM_RUN_H_RIFLE": "run_h_rifle" },
-                { "ANIM_RUN_V_RIFLE": "run_v_rifle" },
-
-                { "ANIM_TRANS_H_V_RIFLE": "trans_h_v_rifle" },
-                { "ANIM_TRANS_H_D_RIFLE": "trans_h_d_rifle" },
-                { "ANIM_TRANS_HC_RIFLE": "trans_hc_rifle" }
+                { "ANIM_IDLE": "idle" },
+                { "ANIM_CROUCH": "crouch" },
+                { "ANIM_RUN": "run" },
+                { "ANIM_JUMP": "jump" }
             ]
         },
+        "entry_points": [
+            { "name": "IdleState" },
+            { "name": "CrouchState" },
+            { "name": "RunState" },
+            { "name": "JumpState" }
+        ],
         "states": [
             {
-                "name": "IdleCPistolState",
-                "animation_name": "ANIM_IDLE_C_PISTOL",
+                "name": "IdleState",
+                "description": "Idle, not running",
+                "animation_name": "ANIM_IDLE",
                 "transitions": [
-                    { "state": "RunCPistolState", "conditions": ["SM_WALKING"] },
-                    { "state": "IdleHPistolState", "conditions": ["!SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
+                    { "state": "RunState", "conditions": "SM_WALKING" },
+                    { "state": "CrouchState", "conditions": "SM_CROUCHING" }
                 ]
             },
             {
-                "name": "IdleDPistolState",
-                "animation_name": "ANIM_IDLE_D_PISTOL",
+                "name": "CrouchState",
+                "description": "Crouching, not running",
+                "animation_name": "ANIM_CROUCH",
                 "transitions": [
-                    { "state": "IdleHPistolState", "conditions": ["SM_H_AIMING"] }
+                    { "state": "IdleState", "conditions": "!SM_CROUCHING" }
                 ]
             },
             {
-                "name": "IdleHPistolState",
-                "animation_name": "ANIM_IDLE_H_PISTOL",
+                "name": "RunState",
+                "description": "Run state",
+                "animation_name": "ANIM_RUN",
                 "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_D_AIMING"] },
-                    { "state": "RunHPistolState", "conditions": ["SM_WALKING"] },
-                    { "state": "TransitionHVPistolState", "conditions": ["SM_V_AIMING"] },
-                    { "state": "TransitionHCPistolState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "JumpPistolState", "conditions": ["SM_AIR"] }
+                    { "state": "IdleState", "conditions": "!SM_WALKING" }
                 ]
             },
             {
-                "name": "IdleVPistolState",
-                "animation_name": "ANIM_IDLE_V_PISTOL",
+                "name": "JumpState",
+                "description": "On air",
+                "animation_name": "ANIM_JUMP",
                 "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_H_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } },
-                    { "state": "RunHPistolState", "conditions": ["SM_WALKING", "!SM_V_AIMING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "RunVPistolState", "conditions": ["SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
-
-            {
-                "name": "IdlingCPistolState",
-                "animation_name": "ANIM_IDLING_C_PISTOL",
-                "transitions": [
-                    { "state": "IdlingHPistolState", "conditions": ["!SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
+                    { "state": "IdleState", "conditions": "!SM_ON_AIR" }
                 ],
                 "on_end": [
-                    { "state": "IdleCPistolState" }
+                    { "state": "IdleState" }
                 ]
-            },
-            {
-                "name": "IdlingHPistolState",
-                "animation_name": "ANIM_IDLING_H_PISTOL",
-                "transitions": [
-                    { "state": "IdlingCPistolState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } },
-                    { "state": "IdlingVPistolState", "conditions": ["SM_V_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "RunHPistolState", "conditions": ["SM_WALKING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleHPistolState" }
-                ]
-            },
-            {
-                "name": "IdlingVPistolState",
-                "animation_name": "ANIM_IDLING_V_PISTOL",
-                "transitions": [
-                    { "state": "IdlingHPistolState", "conditions": ["!SM_V_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "RunVPistolState", "conditions": ["SM_WALKING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleVPistolState" }
-                ]
-            },
-
-
-            {
-                "name": "FiringCPistolState",
-                "animation_name": "ANIM_FIRE_C_PISTOL",
-                "transitions": [
-                    { "state": "FiringHPistolState", "conditions": ["!SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdlingCPistolState" }
-                ]
-            },
-            {
-                "name": "FiringDPistolState",
-                "animation_name": "ANIM_FIRE_D_PISTOL",
-                "transitions": [
-                    { "state": "FiringHPistolState", "conditions": ["SM_H_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdleDPistolState" }
-                ]
-            },
-            {
-                "name": "FiringHPistolState",
-                "animation_name": "ANIM_FIRE_H_PISTOL",
-                "transitions": [
-                    { "state": "FiringCPistolState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } },
-                    { "state": "FiringVPistolState", "conditions": ["SM_V_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } },
-                    { "state": "IdleDPistolState", "conditions": ["SM_D_AIMING"] }
-                ],
-                "on_end": [
-                    { "state": "IdlingHPistolState" }
-                ]
-            },
-            {
-                "name": "FiringVPistolState",
-                "animation_name": "ANIM_FIRE_V_PISTOL",
-                "transitions": [
-                    { "state": "FiringHPistolState", "conditions": ["SM_V_AIMING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdlingVPistolState" }
-                ]
-            },
-
-
-            {
-                "name": "JumpPistolState",
-                "animation_name": "ANIM_JUMP_PISTOL",
-                "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_AIR", "SM_D_AIMING"] },
-                    { "state": "LandPistolState", "conditions": ["!SM_AIR"] }
-                ]
-            },
-            {
-                "name": "LandPistolState",
-                "animation_name": "ANIM_LAND_PISTOL",
-                "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_AIR", "SM_D_AIMING"] },
-                    { "state": "JumpPistolState", "conditions": ["SM_AIR"] }
-                ],
-                "on_end": [
-                    { "state": "RunCPistolState", "conditions": ["SM_CROUCHING", "SM_WALKING"] },
-                    { "state": "RunHPistolState", "conditions": ["!SM_CROUCHING", "SM_WALKING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleHPistolState" }
-                ]
-            },
-
-
-            {
-                "name": "MeleeC1PistolState",
-                "animation_name": "ANIM_MELEE_PISTOL_C_1",
-                "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdleCPistolState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "IdleHPistolState", "conditions": ["SM_H_AIMING"] },
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-            {
-                "name": "MeleeH1PistolState",
-                "animation_name": "ANIM_MELEE_PISTOL_H_1"
-            },
-            {
-                "name": "MeleeH2PistolState",
-                "animation_name": "ANIM_MELEE_PISTOL_H_2"
-            },
-            {
-                "name": "MeleeH3PistolState",
-                "animation_name": "ANIM_MELEE_PISTOL_H_3",
-                "transitions": [
-                    { "state": "MeleeC1PistolState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdleCPistolState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "IdleHPistolState", "conditions": ["SM_H_AIMING"] },
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-            {
-                "name": "MeleeH4PistolState",
-                "animation_name": "ANIM_MELEE_PISTOL_H_4"
-            },
-
-
-            {
-                "name": "RunCPistolState",
-                "animation_name": "ANIM_RUN_C_PISTOL",
-                "transitions": [
-                    { "state": "RunHPistolState", "conditions": ["SM_WALKING", "!SM_CROUCHING"] },
-                    { "state": "IdleHPistolState", "conditions": ["!SM_WALKING", "!SM_CROUCHING"] },
-                    { "state": "IdleDPistolState", "conditions": ["SM_D_AIMING"] },
-                    { "state": "IdleCPistolState", "conditions": ["SM_WALKING"] }
-                ]
-            },
-            {
-                "name": "RunHPistolState",
-                "animation_name": "ANIM_RUN_H_PISTOL",
-                "transitions": [
-                    { "state": "RunCPistolState", "conditions": ["SM_WALKING", "SM_CROUCHING"] },
-                    { "state": "IdleHPistolState", "conditions": ["!SM_WALKING"] },
-                    { "state": "JumpPistolState", "conditions": ["SM_AIR"] },
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-            {
-                "name": "RunVPistolState",
-                "animation_name": "ANIM_RUN_V_PISTOL",
-                "transitions": [
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING", "SM_WALKING"] },
-                    { "state": "RunHPistolState", "conditions": ["!SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
-
-            
-            {
-                "name": "TransitionHCPistolState",
-                "animation_name": "ANIM_TRANS_HC_PISTOL",
-                "transitions": [
-                    { "state": "IdleHPistolState", "conditions": ["!SM_CROUCHING"] }
-                ],
-                "on_end": [
-                    { "state": "IdleCPistolState" }
-                ]
-            },
-            {
-                "name": "TransitionHVPistolState",
-                "animation_name": "ANIM_TRANS_H_V",
-                "transitions": [
-                    { "state": "RunHPistolState", "conditions": ["SM_WALKING", "SM_H_AIMING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleHPistolState", "conditions": ["SM_H_AIMING"] }
-                ],
-                "on_end": [
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING", "!SM_WALKING"] },
-                    { "state": "RunVPistolState", "conditions": ["SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
-
-
-
-
-            {
-                "name": "IdleCRifleState",
-                "animation_name": "ANIM_IDLE_C_RIFLE",
-                "transitions": [
-                    { "state": "RunHRifleState", "conditions": ["SM_WALKING", "SM_RIFLE"] },
-                    { "state": "IdleCPistolState", "conditions": ["SM_D_AIMING", "!SM_RIFLE"] },
-                    { "state": "IdleHRifleState", "conditions": ["!SM_CROUCHING", "SM_RIFLE"] }
-                ]
-            },
-            {
-                "name": "IdleDRifleState",
-                "animation_name": "ANIM_IDLE_D_RIFLE",
-                "transitions": [
-                    { "state": "IdleDPistolState", "conditions": ["SM_D_AIMING", "!SM_RIFLE"] },
-                    { "state": "IdleHRifleState", "conditions": ["SM_H_AIMING"] }
-                ]
-            },
-            {
-                "name": "IdleHRifleState",
-                "animation_name": "ANIM_IDLE_H_RIFLE",
-                "transitions": [
-                    { "state": "IdleHPistolState", "conditions": ["!SM_RIFLE"] },
-                    { "state": "RunHRifleState", "conditions": ["SM_WALKING"] },
-                    { "state": "TransitionHDRifleState", "conditions": ["SM_D_AIMING"] },
-                    { "state": "TransitionHVRifleState", "conditions": ["SM_V_AIMING"] },
-                    { "state": "TransitionHCRifleState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "JumpRifleState", "conditions": ["SM_AIR"] }
-                ]
-            },
-            {
-                "name": "IdleVRifle",
-                "animation_name": "ANIM_IDLE_V_RIFLE",
-                "transitions": [
-                    { "state": "IdleDRifleState", "conditions": ["SM_H_AIMING"] },
-                    { "state": "IdleVPistolState", "conditions": ["SM_V_AIMING", "!SM_RIFLE"] },
-                    { "state": "RunHRifleState", "conditions": ["SM_WALKING", "!SM_V_AIMING"] },
-                    { "state": "RunVRifleState", "conditions": ["SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
-
-
-            {
-                "name": "FireCRifleMachinegunState",
-                "animation_name": "ANIM_FIRE_C_RIFLE_MACHINEGUN",
-                "on_end": [
-                    { "state": "IdleCRifleState" }
-                ]
-            },
-            {
-                "name": "FireDRifleMachinegunState",
-                "animation_name": "ANIM_FIRE_D_RIFLE_MACHINEGUN",
-                "on_end": [
-                    { "state": "IdleDRifleState" }
-                ]
-            },
-            {
-                "name": "FireHRifleMachinegunState",
-                "animation_name": "ANIM_FIRE_H_RIFLE_MACHINEGUN",
-                "on_end": [
-                    { "state": "IdleHRifleState" }
-                ]
-            },
-            {
-                "name": "FireVRifleMachinegunState",
-                "animation_name": "ANIM_FIRE_V_RIFLE_MACHINEGUN",
-                "on_end": [
-                    { "state": "IdleVRifleState" }
-                ]
-            },
-
-
-            {
-                "name": "JumpRifleState",
-                "animation_name": "ANIM_JUMP_RIFLE",
-                "transitions": [
-                    { "state": "JumpPistolState", "conditions": ["SM_AIR", "!SM_RIFLE" ]},
-                    { "state": "IdleDRifleState", "conditions": ["SM_AIR", "SM_D_AIMING"] },
-                    { "state": "LandRifleState", "conditions": ["!SM_AIR"] }
-                ]
-            },
-            {
-                "name": "LandRifleState",
-                "animation_name": "ANIM_LAND_RIFLE",
-                "transitions": [
-                    { "state": "LandPistolState", "conditions": ["!SM_RIFLE"], "options": { "initializer": ".new(animations.current_animation_position)" } },
-                    { "state": "IdleDRifleState", "conditions": ["SM_AIR", "SM_D_AIMING"] },
-                    { "state": "JumpRifleState", "conditions": ["SM_AIR"] }
-                ],
-                "on_end": [
-                    { "state": "IdleHPistolState", "conditions": ["!SM_RIFLE"] },
-                    { "state": "RunCRifleState", "conditions": ["SM_CROUCHING", "SM_WALKING"] },
-                    { "state": "RunHRifleState", "conditions": ["!SM_CROUCHING", "SM_WALKING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleHRifleState" }
-                ]
-            },
-
-
-            {
-                "name": "MeleeCRifleState",
-                "animation_name": "ANIM_MELEE_RIFLE_C",
-                "transitions": [
-                    { "state": "IdleDRifleState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdleCRifleState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "IdleHRifleState", "conditions": ["SM_H_AIMING"] },
-                    { "state": "IdleVRifleState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-            {
-                "name": "MeleeHRifleState",
-                "animation_name": "ANIM_MELEE_RIFLE_H",
-                "transitions": [
-                    { "state": "MeleeC1RifleState", "conditions": ["SM_CROUCHING"], "options": { "initializer": ".new(animations.current_animation_position)" } }
-                ],
-                "on_end": [
-                    { "state": "IdleCRifleState", "conditions": ["SM_CROUCHING"] },
-                    { "state": "IdleHRifleState", "conditions": ["SM_H_AIMING"] },
-                    { "state": "IdleVRifleState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-
-
-            {
-                "name": "RunCRifleState",
-                "animation_name": "ANIM_RUN_C_PISTOL",
-                "transitions": [
-                    { "state": "RunCPistolState", "conditions": ["!SM_RIFLE"] },
-                    { "state": "RunHRifleState", "conditions": ["SM_WALKING", "!SM_CROUCHING"] },
-                    { "state": "IdleHRifleState", "conditions": ["!SM_WALKING", "!SM_CROUCHING"] },
-                    { "state": "TransitionHDRifleState", "conditions": ["SM_D_AIMING"] },
-                    { "state": "IdleCRifleState", "conditions": ["SM_WALKING"] }
-                ]
-            },
-            {
-                "name": "RunHRifleState",
-                "animation_name": "ANIM_RUN_H_PISTOL",
-                "transitions": [
-                    { "state": "RunHPistolState", "conditions": ["!SM_RIFLE"] },
-                    { "state": "RunCRifleState", "conditions": ["SM_WALKING", "SM_CROUCHING"] },
-                    { "state": "IdleHRifleState", "conditions": ["!SM_WALKING"] },
-                    { "state": "JumpRifleState", "conditions": ["SM_AIR"] },
-                    { "state": "IdleVRifleState", "conditions": ["SM_V_AIMING"] }
-                ]
-            },
-            {
-                "name": "RunVRifleState",
-                "animation_name": "ANIM_RUN_V_PISTOL",
-                "transitions": [
-                    { "state": "RunVPistolState", "conditions": ["!SM_RIFLE"] },
-                    { "state": "IdleVRifleState", "conditions": ["SM_V_AIMING", "SM_WALKING"] },
-                    { "state": "RunHRifleState", "conditions": ["!SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
-
-            
-            {
-                "name": "TransitionHCRifleState",
-                "animation_name": "ANIM_TRANS_HC_RIFLE",
-                "transitions": [
-                    { "state": "IdleHRifleState", "conditions": ["!SM_CROUCHING"] }
-                ],
-                "on_end": [
-                    { "state": "IdleCRifleState" }
-                ]
-            },
-            {
-                "name": "TransitionHDRifleState",
-                "animation_name": "ANIM_TRANS_H_D_RIFLE",
-                "on_end": [
-                    { "state": "IdleDRifleState" }
-                ]
-            },
-            {
-                "name": "TransitionHVRifleState",
-                "animation_name": "ANIM_TRANS_H_V_RIFLE",
-                "transitions": [
-                    { "state": "RunHRifleState", "conditions": ["SM_WALKING", "SM_H_AIMING"], "options": { "initializer": ".new(state_machine.current_walk_frame())" } },
-                    { "state": "IdleHRifleState", "conditions": ["SM_H_AIMING"] }
-                ],
-                "on_end": [
-                    { "state": "IdleVRifleState", "conditions": ["SM_V_AIMING", "!SM_WALKING"] },
-                    { "state": "RunVRifleState", "conditions": ["SM_V_AIMING", "SM_WALKING"] }
-                ]
-            },
+            }
         ]
     }
     """#

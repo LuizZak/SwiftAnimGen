@@ -1,5 +1,6 @@
 class GDScriptCodeGen {
     let buffer: CodeStringBuffer
+    var stateMachineConstants: [StateMachineConstantEntry] = []
     var animationNamesByState: [String: String] = [:]
     var animationConstants: [String: String] = [:]
 
@@ -10,16 +11,27 @@ class GDScriptCodeGen {
     func generate(_ animationsFile: AnimationsFile) -> String {
         buffer.resetState()
 
+        _populateStateMachineConstants(animationsFile)
         _populateAnimationConstants(animationsFile)
         _populateAnimationNamesByState(animationsFile)
 
-        for state in animationsFile.states {
-            emitState(state)
-
-            buffer.ensureEmptyLine()
-        }
+        emitAnimationsFile(animationsFile)
 
         return buffer.finishBuffer()
+    }
+
+    func _populateStateMachineConstants(_ animationsFile: AnimationsFile) {
+        stateMachineConstants = []
+
+        for constant in animationsFile.constants.stateMachine {
+            stateMachineConstants.append(
+                .init(
+                    key: constant.constant.key,
+                    value: constant.constant.value,
+                    type: constant.type
+                )
+            )
+        }
     }
 
     func _populateAnimationConstants(_ animationsFile: AnimationsFile) {
@@ -37,9 +49,106 @@ class GDScriptCodeGen {
             animationNamesByState[state.name] = state.animationName
         }
     }
+
+    struct StateMachineConstantEntry {
+        var key: String
+        var value: String
+        var type: String
+    }
 }
 
 private extension GDScriptCodeGen {
+    func emitAnimationsFile(_ animationsFile: AnimationsFile) {
+        emitClassHeader(animationsFile)
+        emitConstants(animationsFile.constants)
+        emitConstantSetters(animationsFile.constants)
+        emitEntryPoints(animationsFile)
+
+        buffer.ensureEmptyLine()
+
+        for state in animationsFile.states {
+            emitState(state)
+
+            buffer.ensureEmptyLine()
+        }
+    }
+
+    func emitClassHeader(_ animationsFile: AnimationsFile) {
+        buffer.emitLine("class_name \(animationsFile.className)")
+        if let superclass = animationsFile.superclass {
+            buffer.emitLine("extends \(superclass)")
+        } else {
+            buffer.emitLine("extends AnimationStateMachine")
+        }
+    }
+
+    func emitConstants(_ constants: AnimationsFile.Constants) {
+        if !constants.stateMachine.isEmpty {
+            buffer.ensureEmptyLine()
+            buffer.emitLine("#region State Machine Constants")
+            buffer.ensureEmptyLine()
+
+            for constant in constants.stateMachine {
+                buffer.emitLine("# Type: \(constant.type)")
+                buffer.emitLine("const \(constant.constant.key) = \(constant.constant.value.debugDescription)")
+            }
+
+            buffer.ensureEmptyLine()
+            buffer.emitLine("#endregion")
+        }
+
+        if !constants.animationNames.isEmpty {
+            buffer.ensureEmptyLine()
+            buffer.emitLine("#region Animation Name Constants")
+            buffer.ensureEmptyLine()
+
+            for constant in constants.animationNames {
+                buffer.emitLine("const \(constant.key) = \(constant.value.debugDescription)")
+            }
+
+            buffer.ensureEmptyLine()
+            buffer.emitLine("#endregion")
+        }
+    }
+
+    func emitConstantSetters(_ constants: AnimationsFile.Constants) {
+        for constant in constants.stateMachine {
+            buffer.ensureEmptyLine()
+
+            let functionName: String
+            if let setterName = constant.setterName {
+                functionName = setterName
+            } else {
+                functionName = "set_" + constant.constant.value
+            }
+
+            buffer.emitBlock("func \(functionName)(value: \(constant.type))") {
+                buffer.emitLine("parameters[\(constant.constant.key)] = value")
+            }
+        }
+    }
+
+    func emitEntryPoints(_ animationsFile: AnimationsFile) {
+        guard let entryPoints = animationsFile.entryPoints else {
+            return
+        }
+
+        buffer.emitLine("#region Entry Points")
+        buffer.ensureEmptyLine()
+
+        for entryPoint in entryPoints {
+            buffer.ensureEmptyLine()
+
+            let functionName = "transition_" + entryPoint.name.lowercasedFirstLetter
+            buffer.emitBlock("func \(functionName)()") {
+                buffer.emitLine("transition([], \(entryPoint.name).new(0.0, true))")
+            }
+        }
+
+        buffer.ensureEmptyLine()
+        buffer.emitLine("#endregion")
+    }
+
     func emitState(_ state: AnimationState) {
         var commentHeader: String = ""
 
@@ -174,7 +283,7 @@ private extension GDScriptCodeGen {
     }
 
     func emitConditionalExpression(_ expression: ConditionGrammar.Condition) {
-        let emitter = ConditionEmitter(buffer: buffer, constants: Set(animationConstants.keys))
+        let emitter = ConditionEmitter(buffer: buffer, constants: Set(stateMachineConstants.map(\.key)))
         emitter.unfoldConstants = true
         emitter.emit(expression)
     }
@@ -560,7 +669,7 @@ private extension GDScriptCodeGen {
                 buffer.emit(")")
 
             case .identifier(let ident):
-                if unfoldConstants && _expressionMode() != .compound {
+                if unfoldConstants && _expressionMode() != .compound && constants.contains(ident) {
                     buffer.emit("state_machine.parameters[")
                     buffer.emit(ident)
                     buffer.emit("]")

@@ -1,12 +1,13 @@
 {
+    "class_name": "ExampleAnimationStateMachine",
     "options": {
         "animation_name_kind": "constant"
     },
     "constants": {
         "state_machine": [
-            { "SM_CROUCHING": "crouching" },
-            { "SM_WALKING": "walking" },
-            { "SM_ON_AIR": "on_air" }
+            { "constant": { "SM_CROUCHING": "crouching" }, "type": "bool", "setter_name": "set_crouching" },
+            { "constant": { "SM_WALKING": "walking" }, "type": "bool", "setter_name": "set_walking" },
+            { "constant": { "SM_ON_AIR": "on_air" }, "type": "bool", "setter_name": "set_on_air" }
         ],
         "animation_names": [
             { "ANIM_IDLE": "idle" },

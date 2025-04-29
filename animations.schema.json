@@ -7,6 +7,14 @@
             "description": "A definition file for animations.json file.",
             "additionalProperties": false,
             "properties": {
+                "class_name": {
+                    "type": "string",
+                    "description": "The name of the class to generate."
+                },
+                "superclass": {
+                    "type": "string",
+                    "description": "The name of the superclass to extend. If not present, defaults to 'AnimationStateMachine'."
+                },
                 "options": {
                     "$ref": "#/definitions/GlobalOptions"
                 },
@@ -21,6 +29,7 @@
                 }
             },
             "required": [
+                "class_name",
                 "states"
             ]
         },
@@ -42,7 +51,7 @@
             "additionalProperties": false,
             "properties": {
                 "state_machine": {
-                    "$ref": "#/definitions/ConstantsContainer",
+                    "$ref": "#/definitions/StateMachineConstantContainer",
                     "description": "State machine constants that will be unfolded as 'state_machine.parameters[CONSTANT_NAME]' automatically in generated code."
                 },
                 "animation_names": {
@@ -51,16 +60,42 @@
                 }
             }
         },
+        "StateMachineConstantContainer": {
+            "type": "array",
+            "description": "An array of state machine constants that will be visible by the generated script.",
+            "items": {
+                "type": "object",
+                "description": "A state machine constant entry.",
+                "additionalProperties": false,
+                "properties": {
+                    "constant": {
+                        "$ref": "#/definitions/Constant"
+                    },
+                    "type": {
+                        "type": "string",
+                        "description": "The static type of the constant. Affects generated setters for the constant definition."
+                    },
+                    "setter_name": {
+                        "type": "string",
+                        "description": "A valid GDScript function name to use as a setter for this constant."
+                    }
+                },
+                "required": [
+                    "constant",
+                    "type"
+                ]
+            }
+        },
         "ConstantsContainer": {
             "type": "array",
-            "description": "A dictionary of constants that will be visible by the generated script.",
+            "description": "An array of constants that will be visible by the generated script.",
             "items": {
                 "$ref": "#/definitions/Constant"
             }
         },
         "Constant": {
             "type": "object",
-            "description": "A constant that will be visible by the generated script."
+            "description": "A constant that will be visible by the generated script. Expected to be a dictionary with a single key: pair entry."
         },
         "EntryPoints": {
             "type": "array",

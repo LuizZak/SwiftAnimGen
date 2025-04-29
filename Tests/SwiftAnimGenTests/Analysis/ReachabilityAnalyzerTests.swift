@@ -5,7 +5,12 @@ import Testing
 struct ReachabilityAnalyzerTests {
     @Test
     func diagnose_emptyFile() {
-        let file = AnimationsFile(options: .init(animationNameKind: .constant), constants: .init(stateMachine: [], animationNames: []), states: [])
+        let file = AnimationsFile(
+            className: "TestClass",
+            options: .init(animationNameKind: .constant),
+            constants: .init(stateMachine: [], animationNames: []),
+            states: []
+        )
         let sut = makeSut()
         sut.populate(file)
 
@@ -17,6 +22,7 @@ struct ReachabilityAnalyzerTests {
     @Test
     func diagnose_unreachable_withCycle() {
         let file = AnimationsFile(
+            className: "TestClass",
             options: .init(animationNameKind: .constant),
             constants: .init(stateMachine: [], animationNames: []),
             states: [
@@ -39,6 +45,7 @@ struct ReachabilityAnalyzerTests {
     @Test
     func diagnose_unreachable() {
         let file = AnimationsFile(
+            className: "TestClass",
             options: .init(animationNameKind: .constant),
             constants: .init(stateMachine: [], animationNames: []),
             states: [
@@ -56,6 +63,7 @@ struct ReachabilityAnalyzerTests {
     @Test
     func diagnose_reachableByEntryPoint() {
         let file = AnimationsFile(
+            className: "TestClass",
             options: .init(animationNameKind: .constant),
             constants: .init(stateMachine: [], animationNames: []),
             entryPoints: [

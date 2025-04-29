@@ -94,14 +94,15 @@ And an animation JSON file:
 
 ```json
 {
+    "class_name": "ExampleAnimationStateMachine",
     "options": {
         "animation_name_kind": "constant"
     },
     "constants": {
         "state_machine": [
-            { "SM_CROUCHING": "crouching" },
-            { "SM_WALKING": "walking" },
-            { "SM_ON_AIR": "on_air" }
+            { "constant": { "SM_CROUCHING": "crouching" }, "type": "bool", "setter_name": "set_crouching" },
+            { "constant": { "SM_WALKING": "walking" }, "type": "bool", "setter_name": "set_walking" },
+            { "constant": { "SM_ON_AIR": "on_air" }, "type": "bool", "setter_name": "set_on_air" }
         ],
         "animation_names": [
             { "ANIM_IDLE": "idle" },
@@ -155,6 +156,7 @@ And an animation JSON file:
         }
     ]
 }
+
 ```
 
 Running the program with the command line as such:
@@ -166,6 +168,54 @@ swift run SwiftAnimGen 'path/to/animations.json'
 Produces the following output in the command line:
 
 ```gdscript
+class_name ExampleAnimationStateMachine
+extends AnimationStateMachine
+
+#region State Machine Constants
+
+# Type: bool
+const SM_CROUCHING = "crouching"
+# Type: bool
+const SM_WALKING = "walking"
+# Type: bool
+const SM_ON_AIR = "on_air"
+
+#endregion
+
+#region Animation Name Constants
+
+const ANIM_IDLE = "idle"
+const ANIM_CROUCH = "crouch"
+const ANIM_RUN = "run"
+const ANIM_JUMP = "jump"
+
+#endregion
+
+func set_crouching(value: bool):
+    parameters[SM_CROUCHING] = value
+
+func set_walking(value: bool):
+    parameters[SM_WALKING] = value
+
+func set_on_air(value: bool):
+    parameters[SM_ON_AIR] = value
+
+#region Entry Points
+
+func transition_idleState():
+    transition([], IdleState.new(0.0, true))
+
+func transition_crouchState():
+    transition([], CrouchState.new(0.0, true))
+
+func transition_runState():
+    transition([], RunState.new(0.0, true))
+
+func transition_jumpState():
+    transition([], JumpState.new(0.0, true))
+
+#endregion
+
 # Idle, not running
 # Handles:
 # idle
