@@ -245,76 +245,26 @@ class IdleState extends AnimationState:
             )
             return
 
-# Crouching, not running
-# Handles:
-# crouch
-class CrouchState extends AnimationState:
-    func get_animation_name() -> String:
-        return ANIM_CROUCH
+# [...]
+```
 
-    func apply_transitions(stack, state_machine):
-        if !push_and_check(stack, CrouchState, state_machine):
-            return
+Animation state machines can be used as such:
 
-        var animations = state_machine.parameters[SM_ANIMATIONS] as AnimationPlayer
+```gdscript
+# Setup and initial state
+var state_machine = ExampleAnimationStateMachine.new()
 
-        # -> idle
-        if not state_machine.parameters[SM_CROUCHING]:
-            state_machine.transition(
-                stack,
-                IdleState.new()
-            )
-            return
+state_machine.set_crouching(false)
+state_machine.set_on_air(false)
+state_machine.set_walking(false)
 
-# Run state
-# Handles:
-# run
-class RunState extends AnimationState:
-    func get_animation_name() -> String:
-        return ANIM_RUN
+state_machine.transition_idleState()
 
-    func apply_transitions(stack, state_machine):
-        if !push_and_check(stack, RunState, state_machine):
-            return
+# On _process call:
 
-        var animations = state_machine.parameters[SM_ANIMATIONS] as AnimationPlayer
+state_machine.set_crouching(my_character.is_crouching)
+state_machine.set_on_air(my_character.body.is_on_floor())
+state_machine.set_walking(my_character.is_walking)
 
-        # -> idle
-        if not state_machine.parameters[SM_WALKING]:
-            state_machine.transition(
-                stack,
-                IdleState.new()
-            )
-            return
-
-# On air
-# Handles:
-# jump
-class JumpState extends AnimationState:
-    func get_animation_name() -> String:
-        return ANIM_JUMP
-
-    func apply_transitions(stack, state_machine):
-        if !push_and_check(stack, JumpState, state_machine):
-            return
-
-        var animations = state_machine.parameters[SM_ANIMATIONS] as AnimationPlayer
-
-        # -> idle
-        if not state_machine.parameters[SM_ON_AIR]:
-            state_machine.transition(
-                stack,
-                IdleState.new()
-            )
-            return
-
-    func on_animation_finished(animation_name, state_machine):
-        var animations = state_machine.parameters[SM_ANIMATIONS] as AnimationPlayer
-
-        # -> idle
-        state_machine.transition(
-            [],
-            IdleState.new()
-        )
-        return
+state_machine.apply_transitions() # Instantly applies the appropriate transitions, stopping when no more states need switching, or when it detects an infinite loop
 ```
