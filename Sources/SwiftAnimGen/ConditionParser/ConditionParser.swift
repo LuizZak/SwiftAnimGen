@@ -169,7 +169,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
     /// ```
     /// booleanOr[ConditionGrammar.BooleanOrExpression]:
-    ///     | booleanOr _=BOOLEANOR booleanAnd { .or(booleanOr, booleanAnd) }
+    ///     | booleanOr _=or booleanAnd { .or(booleanOr, booleanAnd) }
     ///     | booleanAnd { .booleanAnd(booleanAnd) }
     ///     ;
     /// ```
@@ -180,7 +180,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
         if
             let booleanOr = try self.booleanOr(),
-            let _ = try self.expect(kind: .booleanOr),
+            let _ = try self.or(),
             let booleanAnd = try self.booleanAnd()
         {
             return .or(booleanOr, booleanAnd)
@@ -199,7 +199,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
     /// ```
     /// booleanAnd[ConditionGrammar.BooleanAndExpression]:
-    ///     | booleanAnd _=BOOLEANAND booleanNot { .and(booleanAnd, booleanNot) }
+    ///     | booleanAnd _=and booleanNot { .and(booleanAnd, booleanNot) }
     ///     | booleanNot { .booleanNot(booleanNot) }
     ///     ;
     /// ```
@@ -210,7 +210,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
         if
             let booleanAnd = try self.booleanAnd(),
-            let _ = try self.expect(kind: .booleanAnd),
+            let _ = try self.and(),
             let booleanNot = try self.booleanNot()
         {
             return .and(booleanAnd, booleanNot)
@@ -229,7 +229,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
     /// ```
     /// booleanNot[ConditionGrammar.BooleanNotExpression]:
-    ///     | _=BOOLEANNOT booleanNot { .not(booleanNot) }
+    ///     | _=not booleanNot { .not(booleanNot) }
     ///     | inclusionCheck { .inclusionCheck(inclusionCheck) }
     ///     ;
     /// ```
@@ -239,7 +239,7 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
         let _mark: Mark = self.mark()
 
         if
-            let _ = try self.expect(kind: .booleanNot),
+            let _ = try self.not(),
             let booleanNot = try self.booleanNot()
         {
             return .not(booleanNot)
@@ -923,6 +923,84 @@ public class ConditionParser<RawTokenizer: RawTokenizerType>: PEGParser<RawToken
 
         if let float = try self.expect(kind: .float) {
             return .float(Double("\(float)") ?? 0.0)
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// not[Token]:
+    ///     | NOT='not' { NOT }
+    ///     | NOT='!' { NOT }
+    ///     ;
+    /// ```
+    @memoized("not")
+    @inlinable
+    public func __not() throws -> Token? {
+        let _mark: Mark = self.mark()
+
+        if let NOT = try self.expect(kind: .not) {
+            return NOT
+        }
+
+        self.restore(_mark)
+
+        if let NOT = try self.expect(kind: .booleanNot) {
+            return NOT
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// or[Token]:
+    ///     | OR='or' { OR }
+    ///     | OR='||' { OR }
+    ///     ;
+    /// ```
+    @memoized("or")
+    @inlinable
+    public func __or() throws -> Token? {
+        let _mark: Mark = self.mark()
+
+        if let OR = try self.expect(kind: .or) {
+            return OR
+        }
+
+        self.restore(_mark)
+
+        if let OR = try self.expect(kind: .booleanOr) {
+            return OR
+        }
+
+        self.restore(_mark)
+
+        return nil
+    }
+
+    /// ```
+    /// and[Token]:
+    ///     | AND='and' { AND }
+    ///     | AND='&&' { AND }
+    ///     ;
+    /// ```
+    @memoized("and")
+    @inlinable
+    public func __and() throws -> Token? {
+        let _mark: Mark = self.mark()
+
+        if let AND = try self.expect(kind: .and) {
+            return AND
+        }
+
+        self.restore(_mark)
+
+        if let AND = try self.expect(kind: .booleanAnd) {
+            return AND
         }
 
         self.restore(_mark)

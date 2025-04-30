@@ -66,38 +66,7 @@ $FLOAT[".float"]:
     | DIGITS '.' DIGITS FLOAT_EXPONENT?
     ;
 
-$AWAIT[".await"]:
-    | "await"
-    ;
-
-$AS[".as"]:
-    | "as"
-    ;
-
-$IS[".is"]:
-    | "is"
-    ;
-
-$IN[".in"]:
-    | "in"
-    ;
-
-$NOT[".not"]: "not" ;
-
-$BOOLEANNOT[".booleanNot"]:
-    | "not"
-    | "!"
-    ;
-
-$BOOLEANAND[".booleanAnd"]:
-    | "and"
-    | "&&"
-    ;
-
-$BOOLEANOR[".booleanOr"]:
-    | "or"
-    | "||"
-    ;
+$AWAIT[".await"]: "await" ;
 
 $STRING[".string"]:
     | tripleQuote ( '\\"""' | unicodeEscape | backslashEscape | !tripleQuote . )* tripleQuote
@@ -130,6 +99,9 @@ $MINUS[".minus"]: "-" ;
 $COMMA[".comma"]: "," ;
 $PERIOD[".period"]: "." ;
 $TILDE[".tilde"]: "~" ;
+$BOOLEANNOT[".booleanNot"]: "!" ;
+$BOOLEANAND[".booleanAnd"]: "&&" ;
+$BOOLEANOR[".booleanOr"]: "||" ;
 $BITWISEAND[".bitwiseAnd"]: "&" ;
 $BITWISEOR[".bitwiseOr"]: "|" ;
 $BITWISEXOR[".bitwiseXor"]: "^" ;
@@ -137,5 +109,11 @@ $EQUALS[".equals"]: "==" ;
 $NOTEQUALS[".notEquals"]: "!=" ;
 $LESSOREQUALS[".lessOrEquals"]: "<=" ;
 $GREATEROREQUALS[".greaterOrEquals"]: ">=" ;
-$IF[".if"]: "if" ;
-$ELSE[".else"]: "else" ;
+$IF[".if"]: "if" !identifierCharacter ;
+$ELSE[".else"]: "else" !identifierCharacter ;
+$AS[".as"]: "as" !identifierCharacter ;
+$IS[".is"]: "is" !identifierCharacter ;
+$IN[".in"]: "in" !identifierCharacter ;
+$NOT[".not"]: "not" !identifierCharacter ;
+$AND[".and"]: "and" !identifierCharacter ;
+$OR[".or"]: "or" !identifierCharacter ;
