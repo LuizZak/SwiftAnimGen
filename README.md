@@ -266,5 +266,8 @@ state_machine.set_crouching(my_character.is_crouching)
 state_machine.set_on_air(my_character.body.is_on_floor())
 state_machine.set_walking(my_character.is_walking)
 
-state_machine.apply_transitions() # Instantly applies the appropriate transitions, stopping when no more states need switching, or when it detects an infinite loop
+# Instantly applies the appropriate transitions, stopping
+# when no more states need switching, or when it detects
+# an infinite loop
+state_machine.apply_transitions()
 ```
