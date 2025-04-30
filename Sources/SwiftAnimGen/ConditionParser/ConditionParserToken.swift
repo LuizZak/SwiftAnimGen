@@ -156,53 +156,37 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
             return .init(kind: .tilde, string: stream.substring)
         }
 
-        if consume_AND(from: &stream) {
-            return .init(kind: .and, string: stream.substring)
-        }
-
-        if consume_AS(from: &stream) {
-            return .init(kind: .as, string: stream.substring)
-        }
-
-        if consume_ELSE(from: &stream) {
-            return .init(kind: .else, string: stream.substring)
-        }
-
         if consume_FLOAT(from: &stream) {
             return .init(kind: .float, string: stream.substring)
         }
 
         if consume_IDENTIFIER(from: &stream) {
             switch stream.substring {
+            case "and":
+                return .init(kind: .and, string: stream.substring)
+            case "as":
+                return .init(kind: .as, string: stream.substring)
             case "await":
                 return .init(kind: .await, string: stream.substring)
+            case "else":
+                return .init(kind: .else, string: stream.substring)
+            case "if":
+                return .init(kind: .if, string: stream.substring)
+            case "in":
+                return .init(kind: .in, string: stream.substring)
+            case "is":
+                return .init(kind: .is, string: stream.substring)
+            case "not":
+                return .init(kind: .not, string: stream.substring)
+            case "or":
+                return .init(kind: .or, string: stream.substring)
             default:
                 return .init(kind: .identifier, string: stream.substring)
             }
         }
 
-        if consume_IF(from: &stream) {
-            return .init(kind: .if, string: stream.substring)
-        }
-
-        if consume_IN(from: &stream) {
-            return .init(kind: .in, string: stream.substring)
-        }
-
         if consume_INTEGER(from: &stream) {
             return .init(kind: .integer, string: stream.substring)
-        }
-
-        if consume_IS(from: &stream) {
-            return .init(kind: .is, string: stream.substring)
-        }
-
-        if consume_NOT(from: &stream) {
-            return .init(kind: .not, string: stream.substring)
-        }
-
-        if consume_OR(from: &stream) {
-            return .init(kind: .or, string: stream.substring)
         }
 
         if consume_STRING(from: &stream) {
@@ -215,6 +199,12 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     public enum TokenKind: TokenKindType {
         /// `(" " | "\t" | "\n" | "\r")+`
         case whitespace
+
+        /// `"and"`
+        case and
+
+        /// `"as"`
+        case `as`
 
         /// `"await"`
         case await
@@ -243,11 +233,23 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
         /// `"**"`
         case doubleStar
 
+        /// `"else"`
+        case `else`
+
         /// `"=="`
         case equals
 
         /// `">="`
         case greaterOrEquals
+
+        /// `"if"`
+        case `if`
+
+        /// `"in"`
+        case `in`
+
+        /// `"is"`
+        case `is`
 
         /// `"{"`
         case leftBrace
@@ -273,11 +275,17 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
         /// `"%"`
         case modulus
 
+        /// `"not"`
+        case not
+
         /// `"!="`
         case notEquals
 
         /// `"!"`
         case booleanNot
+
+        /// `"or"`
+        case or
 
         /// `"."`
         case period
@@ -306,26 +314,11 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
         /// `"~"`
         case tilde
 
-        /// `"and" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case and
-
-        /// `"as" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case `as`
-
-        /// `"else" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case `else`
-
         /// `DIGITS "." DIGITS FLOAT_EXPONENT?`
         case float
 
         /// `identifierHead ("a"..."z" | "A"..."Z" | "0"..."9" | "_")*`
         case identifier
-
-        /// `"if" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case `if`
-
-        /// `"in" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case `in`
 
         /// ```
         /// INTEGER[".integer"]:
@@ -335,15 +328,6 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
         ///     ;
         /// ```
         case integer
-
-        /// `"is" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case `is`
-
-        /// `"not" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case not
-
-        /// `"or" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"`
-        case or
 
         /// ```
         /// STRING[".string"]:
@@ -359,6 +343,10 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
             switch self {
             case .whitespace:
                 "WHITESPACE"
+            case .and:
+                "and"
+            case .as:
+                "as"
             case .await:
                 "await"
             case .bitwiseXor:
@@ -377,10 +365,18 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
                 "/"
             case .doubleStar:
                 "**"
+            case .else:
+                "else"
             case .equals:
                 "=="
             case .greaterOrEquals:
                 ">="
+            case .if:
+                "if"
+            case .in:
+                "in"
+            case .is:
+                "is"
             case .leftBrace:
                 "{"
             case .leftParen:
@@ -397,10 +393,14 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
                 "-"
             case .modulus:
                 "%"
+            case .not:
+                "not"
             case .notEquals:
                 "!="
             case .booleanNot:
                 "!"
+            case .or:
+                "or"
             case .period:
                 "."
             case .plus:
@@ -419,28 +419,12 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
                 "*"
             case .tilde:
                 "~"
-            case .and:
-                "AND"
-            case .as:
-                "AS"
-            case .else:
-                "ELSE"
             case .float:
                 "FLOAT"
             case .identifier:
                 "IDENTIFIER"
-            case .if:
-                "IF"
-            case .in:
-                "IN"
             case .integer:
                 "INTEGER"
-            case .is:
-                "IS"
-            case .not:
-                "NOT"
-            case .or:
-                "OR"
             case .string:
                 "STRING"
             }
@@ -472,6 +456,26 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
 
             return true
         }
+    }
+
+    /// ```
+    /// AND[".and"]:
+    ///     | "and"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_AND<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("and")
+    }
+
+    /// ```
+    /// AS[".as"]:
+    ///     | "as"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_AS<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("as")
     }
 
     /// ```
@@ -565,6 +569,16 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     }
 
     /// ```
+    /// ELSE[".else"]:
+    ///     | "else"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_ELSE<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("else")
+    }
+
+    /// ```
     /// EQUALS[".equals"]:
     ///     | "=="
     ///     ;
@@ -582,6 +596,36 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     @inlinable
     public static func consume_GREATEROREQUALS<StringType>(from stream: inout StringStream<StringType>) -> Bool {
         stream.advanceIfNext(">=")
+    }
+
+    /// ```
+    /// IF[".if"]:
+    ///     | "if"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_IF<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("if")
+    }
+
+    /// ```
+    /// IN[".in"]:
+    ///     | "in"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_IN<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("in")
+    }
+
+    /// ```
+    /// IS[".is"]:
+    ///     | "is"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_IS<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("is")
     }
 
     /// ```
@@ -665,6 +709,16 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     }
 
     /// ```
+    /// NOT[".not"]:
+    ///     | "not"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_NOT<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("not")
+    }
+
+    /// ```
     /// NOTEQUALS[".notEquals"]:
     ///     | "!="
     ///     ;
@@ -682,6 +736,16 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     @inlinable
     public static func consume_BOOLEANNOT<StringType>(from stream: inout StringStream<StringType>) -> Bool {
         stream.advanceIfNext("!")
+    }
+
+    /// ```
+    /// OR[".or"]:
+    ///     | "or"
+    ///     ;
+    /// ```
+    @inlinable
+    public static func consume_OR<StringType>(from stream: inout StringStream<StringType>) -> Bool {
+        stream.advanceIfNext("or")
     }
 
     /// ```
@@ -772,78 +836,6 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     @inlinable
     public static func consume_TILDE<StringType>(from stream: inout StringStream<StringType>) -> Bool {
         stream.advanceIfNext("~")
-    }
-
-    /// ```
-    /// AND[".and"]:
-    ///     | "and" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_AND<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("and") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
-    /// AS[".as"]:
-    ///     | "as" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_AS<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("as") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
     }
 
     /// ```
@@ -954,42 +946,6 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     @inlinable
     public static func consume_BINARYDIGIT<StringType>(from stream: inout StringStream<StringType>) -> Bool {
         return stream.advanceIfNext("0") || stream.advanceIfNext("1")
-    }
-
-    /// ```
-    /// ELSE[".else"]:
-    ///     | "else" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_ELSE<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("else") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
     }
 
     /// ```
@@ -1202,78 +1158,6 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
     }
 
     /// ```
-    /// IF[".if"]:
-    ///     | "if" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_IF<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("if") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
-    /// IN[".in"]:
-    ///     | "in" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_IN<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("in") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
     /// INTEGER[".integer"]:
     ///     | DIGITS
     ///     | "0x" HEXDIGITS
@@ -1319,114 +1203,6 @@ public struct ConditionParserToken: RawTokenType, CustomStringConvertible {
             }
 
             guard consume_BINARYDIGITS(from: &stream) else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
-    /// IS[".is"]:
-    ///     | "is" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_IS<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("is") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
-    /// NOT[".not"]:
-    ///     | "not" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_NOT<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("not") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
-                break alt
-            }
-
-            return true
-        }
-
-        stream.restore(state)
-
-        return false
-    }
-
-    /// ```
-    /// OR[".or"]:
-    ///     | "or" !"a"..."z" !"A"..."Z" !"0"..."9" !"_"
-    ///     ;
-    /// ```
-    @inlinable
-    public static func consume_OR<StringType>(from stream: inout StringStream<StringType>) -> Bool {
-        guard !stream.isEof else {
-            return false
-        }
-
-        let state: StringStream<StringType>.State = stream.save()
-
-        alt:
-        do {
-            guard stream.advanceIfNext("or") else {
-                return false
-            }
-
-            guard
-                !stream.isNextInRange("a"..."z"),
-                !stream.isNextInRange("A"..."Z"),
-                !stream.isNextInRange("0"..."9"),
-                !stream.isNext("_")
-            else {
                 break alt
             }
 

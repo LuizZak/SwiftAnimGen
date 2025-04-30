@@ -63,7 +63,7 @@ func makeDummyJson() -> String {
                 "description": "Crouching, not running",
                 "animation_name": "ANIM_CROUCH",
                 "transitions": [
-                    { "state": "IdleState", "conditions": "!SM_CROUCHING" }
+                    { "state": "IdleState", "conditions": "not SM_CROUCHING" }
                 ]
             },
             {
@@ -71,7 +71,7 @@ func makeDummyJson() -> String {
                 "description": "Run state",
                 "animation_name": "ANIM_RUN",
                 "transitions": [
-                    { "state": "IdleState", "conditions": "!SM_WALKING" }
+                    { "state": "IdleState", "conditions": "not SM_WALKING" }
                 ]
             },
             {
@@ -79,7 +79,7 @@ func makeDummyJson() -> String {
                 "description": "On air",
                 "animation_name": "ANIM_JUMP",
                 "transitions": [
-                    { "state": "IdleState", "conditions": "!SM_ON_AIR" }
+                    { "state": "IdleState", "conditions": "not SM_ON_AIR" }
                 ],
                 "on_end": [
                     { "state": "IdleState" }
